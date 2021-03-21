@@ -11,6 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Checkout.Contracts;
+using Checkout.Models;
+using Checkout.repositories;
+using Checkout.Services;
 
 namespace Checkout
 {
@@ -27,6 +31,16 @@ namespace Checkout
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddScoped<IShoppingCartService, ShoppingCartService>();
+
+            // Create some dummy data
+            var repository = new ProductRepository();
+            repository.Save(new Product() { SKU = "A99", UnitPrice = 0.5M });
+            repository.Save(new Product() { SKU = "B15", UnitPrice = 0.3M });
+            repository.Save(new Product() { SKU = "C40", UnitPrice = 0.6M });
+            services.AddSingleton<IProductRepository>(repository);
+
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

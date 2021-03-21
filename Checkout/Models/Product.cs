@@ -7,6 +7,6 @@ namespace Checkout.Models
     {
         public string SKU { get; set; }
 
-        public double UnitPrice { get; set; }
+        public decimal UnitPrice { get; set; }
     }
 }

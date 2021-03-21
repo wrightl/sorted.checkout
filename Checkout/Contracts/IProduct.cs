@@ -6,6 +6,6 @@ namespace Checkout.Contracts
     {
         string SKU { get; set; }
 
-        double UnitPrice { get; set; }
+        decimal UnitPrice { get; set; }
     }
 }

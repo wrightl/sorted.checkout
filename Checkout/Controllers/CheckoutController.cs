@@ -13,19 +13,15 @@ namespace Checkout.Controllers
     [Route("[controller]")]
     public class CheckoutController : ControllerBase
     {
-        private static readonly List<IProduct> _productsInMemoryStore = new List<IProduct>();
-
         private readonly ILogger<CheckoutController> _logger;
+        private readonly IShoppingCartService _service;
+        private readonly IProductRepository _repository;
 
-        public CheckoutController(ILogger<CheckoutController> logger)
+        public CheckoutController(ILogger<CheckoutController> logger, IShoppingCartService service, IProductRepository repository)
         {
             _logger = logger;
-
-            if (_productsInMemoryStore.Count == 0) {
-                _productsInMemoryStore.Add(new Product() { SKU = "A99", UnitPrice = 0.5 });
-                _productsInMemoryStore.Add(new Product() { SKU = "B15", UnitPrice = 0.3 });
-                _productsInMemoryStore.Add(new Product() { SKU = "C40", UnitPrice = 0.6 });
-            }
+            _service = service;
+            _repository = repository;
         }
 
         [HttpPost]
@@ -34,36 +30,31 @@ namespace Checkout.Controllers
                      nameof(DefaultApiConventions.Create))]
         public ActionResult Add([FromRoute]string sku)
         {
-            var product = _productsInMemoryStore.FirstOrDefault(p => p.SKU == sku);
+            var product = _repository.GetById(sku);
 
             if (product == null)
             {
-                _logger.LogError("SKU not found: " + sku);
-                return BadRequest(sku);
+                string msg = "SKU not found: " + sku;
+                _logger.LogError(msg);
+                return BadRequest(msg);
             }
 
-            return this.CreatedAtAction(nameof(this.Get), new { product.SKU }, product);
+            var cartEntry = _service.Add(product.SKU, product.UnitPrice);
+
+            return this.CreatedAtAction(nameof(this.Get), new { cartEntry.SKU }, cartEntry);
         }
 
         [HttpGet]
-        public IEnumerable<IProduct> Get()
+        public IEnumerable<IShoppingCartEntry> Get()
         {
-            // use session to get list of products
-
-
-
-            return _productsInMemoryStore;
+            return _service.GetAll();
         }
 
         [HttpGet]
         [Route("total")]
-        public double GetPrice()
+        public decimal GetPrice()
         {
-            // use session to get list of products
-
-
-
-            return 1000;
+            return _service.GetTotal();
         }
     }
 }
