@@ -9,6 +9,12 @@ namespace Checkout.Services
     public class ShoppingCartService : IShoppingCartService
     {
         private static List<IShoppingCartEntry> _cart = new List<IShoppingCartEntry>();
+        private readonly ISpecialOffersCalculator _offersCalculator;
+
+        public ShoppingCartService(ISpecialOffersCalculator offersCalculator)
+        {
+            this._offersCalculator = offersCalculator;
+        }
 
         public IShoppingCartEntry Add(string SKU, decimal UnitPrice, int Quantity = 1)
         {
@@ -41,7 +47,12 @@ namespace Checkout.Services
 
         public decimal GetTotal()
         {
-            return _cart.Sum(e => e.Quantity * e.UnitPrice );
+            return _cart.Sum(e => e.Quantity * e.UnitPrice - _offersCalculator.CalculateDiscount(e));
+        }
+
+        public void DeleteAll()
+        {
+            _cart.Clear();
         }
     }
 }

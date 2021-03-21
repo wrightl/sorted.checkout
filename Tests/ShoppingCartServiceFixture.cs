@@ -5,6 +5,7 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Checkout;
 using Checkout.Services;
 using Checkout.Contracts;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace Tests
 {
     public class ShoppingCartServiceFixture
     {
+
+        private decimal discount = 0.2M;
+
         private ShoppingCartService _sut;
 
         public ShoppingCartServiceFixture()
@@ -27,10 +31,27 @@ namespace Tests
             {
                 if (_sut == null)
                 {
-                    _sut = new ShoppingCartService();
+                    _sut = new ShoppingCartService(
+                                SpecialOffersInstance.Object);
                 }
 
                 return _sut;
+            }
+        }
+
+        private Mock<ISpecialOffersCalculator> mockSpecialOffers;
+
+        public Mock<ISpecialOffersCalculator> SpecialOffersInstance
+        {
+            get
+            {
+                if (mockSpecialOffers == null)
+                {
+                    mockSpecialOffers = new Mock<ISpecialOffersCalculator>();
+                    mockSpecialOffers.Setup(c => c.CalculateDiscount(It.IsAny<IShoppingCartEntry>())).Returns(discount);
+                }
+
+                return mockSpecialOffers;
             }
         }
 
@@ -41,11 +62,11 @@ namespace Tests
             var service = SystemUnderTest;
 
             // Act
-            var entry = service.Add("A99", 0.5M);
+            var entry = service.Add(ProductConstants.A99_SKU, ProductConstants.A99_UnitPrice);
             var actualTotal = service.GetTotal();
 
             // Assert
-            var expectedTotal = 0.5M;
+            var expectedTotal = ProductConstants.A99_UnitPrice - discount;
 
             Assert.Equal(expectedTotal, actualTotal);
             Assert.NotNull(entry);
@@ -70,7 +91,7 @@ namespace Tests
             var service = SystemUnderTest;
 
             // Act & Assert
-            var ex = Assert.Throws<ArgumentException>(() => service.Add("A99", -1));
+            var ex = Assert.Throws<ArgumentException>(() => service.Add(ProductConstants.A99_SKU, -1));
 
             Assert.Equal("UnitPrice must be greater than zero (Parameter 'UnitPrice')", ex.Message);
         }

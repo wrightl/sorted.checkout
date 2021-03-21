@@ -15,6 +15,7 @@ using Checkout.Contracts;
 using Checkout.Models;
 using Checkout.repositories;
 using Checkout.Services;
+using Checkout.Rules;
 
 namespace Checkout
 {
@@ -35,12 +36,19 @@ namespace Checkout
 
             // Create some dummy data
             var repository = new ProductRepository();
-            repository.Save(new Product() { SKU = "A99", UnitPrice = 0.5M });
-            repository.Save(new Product() { SKU = "B15", UnitPrice = 0.3M });
-            repository.Save(new Product() { SKU = "C40", UnitPrice = 0.6M });
+            repository.Save(new Product() { SKU = ProductConstants.A99_SKU, UnitPrice = ProductConstants.A99_UnitPrice });
+            repository.Save(new Product() { SKU = ProductConstants.B15_SKU, UnitPrice = ProductConstants.B15_UnitPrice });
+            repository.Save(new Product() { SKU = ProductConstants.C40_SKU, UnitPrice = ProductConstants.C40_UnitPrice });
             services.AddSingleton<IProductRepository>(repository);
 
-            
+            // Add the special offer rules
+            var offers = new SpecialOffersCalculatorBuilder()
+                                .WithBulkDiscount(ProductConstants.A99_SKU, 0.2M, 3)
+                                .WithBulkDiscount(ProductConstants.B15_SKU, 0.15M, 2)
+                                .Build();
+            services.AddSingleton<ISpecialOffersCalculator>(offers);
+
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

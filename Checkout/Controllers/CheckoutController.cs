@@ -50,11 +50,18 @@ namespace Checkout.Controllers
             return _service.GetAll();
         }
 
-        [HttpGet]
-        [Route("total")]
+        [HttpGet("total")]
         public decimal GetPrice()
         {
             return _service.GetTotal();
+        }
+
+        [HttpDelete]
+        public ActionResult Delete()
+        {
+            _service.DeleteAll();
+
+            return Ok();
         }
     }
 }

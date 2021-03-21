@@ -9,5 +9,7 @@ namespace Checkout.Contracts
         IEnumerable<IShoppingCartEntry> GetAll();
 
         decimal GetTotal();
+
+        void DeleteAll();
     }
 }
